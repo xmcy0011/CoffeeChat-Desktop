@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "cim/db/config_dao.h"
 #include "cim/db/sqlite3_helper.h"
 #include "cim/base/Log.h"

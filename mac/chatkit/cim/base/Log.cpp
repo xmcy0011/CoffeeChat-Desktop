@@ -1,15 +1,16 @@
-#include "pch.h"
 #include "Log.h"
 
-cim::ZLogger& GetInstance() {
+#include <unistd.h>
+
+cim::ZLogger &GetInstance() {
     static cim::ZLogger m_instance;
     return m_instance;
 }
 
 namespace cim {
     ZLogger::ZLogger() {
-        if (::_access("logs", 0) == -1) {
-            ::_mkdir("logs");
+        if (::access("logs", 0) == -1) {
+            ::mkdir("logs", 0777);
         }
 
         //设置为异步日志

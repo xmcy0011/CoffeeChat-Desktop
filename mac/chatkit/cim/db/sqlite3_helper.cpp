@@ -1,11 +1,10 @@
-#include "pch.h"
 #include "sqlite3_helper.h"
 
 #include "cim/cim.h"
 #include "cim/base/Log.h"
 
-#include "base/file/file_util.h"
-#include "base/util/string_util.h"
+#include "cim/base/file/file_util.h"
+#include "cim/base/util/string_util.h"
 
 #include "cim/db/config_dao.h"
 
@@ -25,26 +24,26 @@ namespace cim {
         }
 
         bool SqliteHelper::init() {
-            std::wstring filename = cim::getChatKitConfig().appConfig.app_data_dir + L"\\" + kDefaultAppDataFilename;
+            std::string filename = cim::getChatKitConfig().appConfig.app_data_dir + "/" + kDefaultAppDataFilename;
 
             if (cim::getChatKitConfig().appConfig.app_data_dir.empty()) {
                 filename = kDefaultAppDataFilename;
 
             } else {
-                if (!nbase::FilePathIsExist(cim::getChatKitConfig().appConfig.app_data_dir, true)) {
-                    nbase::CreateDirectoryW(cim::getChatKitConfig().appConfig.app_data_dir);
+                if (!cim::base::FilePathIsExist(cim::getChatKitConfig().appConfig.app_data_dir, true)) {
+                    cim::base::CreateDirectory(cim::getChatKitConfig().appConfig.app_data_dir);
                 }
             }
 
             try {
-                std::string tempName = nbase::UTF16ToUTF8(filename);
+                //std::string tempName = cim::base::UTF16ToUTF8(filename);
 
                 // check db file exist
-                if (!nbase::FilePathIsExist(filename, false)) {
-                    db_ = std::make_shared<SQLite::Database>(tempName, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+                if (!cim::base::FilePathIsExist(filename, false)) {
+                    db_ = std::make_shared<SQLite::Database>(filename, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 
                 } else {
-                    db_ = std::make_shared<SQLite::Database>(tempName, SQLite::OPEN_READWRITE);
+                    db_ = std::make_shared<SQLite::Database>(filename, SQLite::OPEN_READWRITE);
                 }
 
             } catch (const std::exception& e) {

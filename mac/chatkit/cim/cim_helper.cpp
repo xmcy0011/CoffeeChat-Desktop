@@ -6,8 +6,6 @@
 
 #include "cim/cim.h"
 
-#define MSGSIZE 1024
-
 #ifdef _WINDOWS_
 #include <WINSOCK2.H>
 #endif

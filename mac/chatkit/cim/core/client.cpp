@@ -1,6 +1,7 @@
-#include "pch.h"
 #include "cim/core/client.h"
 #include "cim/base/Log.h"
+
+#include <memory>
 
 #include <evpp/event_loop.h>
 #include <evpp/event_loop_thread.h>
@@ -22,11 +23,11 @@ const std::string kClientVersion = "0.1"; // 客户端类型
 namespace cim {
     namespace core {
         Client::Client() :
-            conn_status_(kDefault),
-            tcp_client_(nullptr),
-            loop_(nullptr),
-            user_id_(0),
-            is_login_(false) {
+                tcp_client_(nullptr),
+                loop_(nullptr),
+                conn_status_(kDefault),
+                is_login_(false),
+                user_id_(0) {
             loop_ = std::make_unique<evpp::EventLoopThread>();
             // start loop
             loop_->Start(true);
@@ -37,12 +38,13 @@ namespace cim {
             loop_->Stop(true);
         }
 
-        Client* Client::getInstance() {
+        Client *Client::getInstance() {
             static Client client;
             return &client;
         }
 
-        void Client::login(std::string user_name, std::string pwd, const LoginCallback& cb, const TimeoutCallback& timeout_cb) {
+        void Client::login(std::string user_name, std::string pwd, const LoginCallback &cb,
+                           const TimeoutCallback &timeout_cb) {
             logout();
 
             conn_status_ = kConnectting;
@@ -55,14 +57,17 @@ namespace cim {
             user_name_ = user_name;
             user_pwd_ = md.toString(); // md5
 
-            std::string end_point = cim::getChatKitConfig().serverInfo.ip + ":" + std::to_string(cim::getChatKitConfig().serverInfo.gatePort);
+            std::string end_point = cim::getChatKitConfig().serverInfo.ip + ":" +
+                                    std::to_string(cim::getChatKitConfig().serverInfo.gatePort);
 
             if (tcp_client_ == nullptr) {
                 tcp_client_ = std::make_unique<evpp::TCPClient>(loop_.get()->loop(), end_point, "tcp_client");
 
                 // bind callback
-                tcp_client_->SetConnectionCallback(std::bind(&Client::onConnectionStatusChanged, this, std::placeholders::_1));
-                tcp_client_->SetMessageCallback(std::bind(&Client::onMessage, this, std::placeholders::_1, std::placeholders::_2));
+                tcp_client_->SetConnectionCallback(
+                        std::bind(&Client::onConnectionStatusChanged, this, std::placeholders::_1));
+                tcp_client_->SetMessageCallback(
+                        std::bind(&Client::onMessage, this, std::placeholders::_1, std::placeholders::_2));
 
             } else {
 
@@ -72,7 +77,7 @@ namespace cim {
             LogInfo("connect server,userName={},pwd={}", user_name, user_pwd_);
         }
 
-        void Client::setConnectionCallback(const ConnectionCallback& cb) {
+        void Client::setConnectionCallback(const ConnectionCallback &cb) {
             connection_cb_ = cb;
         }
 
@@ -97,7 +102,7 @@ namespace cim {
             return conn_status_;
         }
 
-        evpp::EventLoop* Client::connLoop() {
+        evpp::EventLoop *Client::connLoop() {
             return loop_.get()->loop();
         }
 
@@ -105,26 +110,26 @@ namespace cim {
             return user_id_;
         }
 
-        int Client::sendRaw(const char* data, const int& len) {
+        int Client::sendRaw(const char *data, const int &len) {
             return 0;
         }
 
-        int Client::send(CIM::Def::CIMCmdID cmd_id, const google::protobuf::MessageLite& msg) {
+        int Client::send(CIM::Def::CIMCmdID cmd_id, const google::protobuf::MessageLite &msg) {
             LogDebug("cmd_id={},bodyLen={}", cmd_id, msg.ByteSize());
 
-            IMHeader header = { 0 };
+            IMHeader header = {0};
             header.cmd = cmd_id;
             header.seq = getSeq();
-            header.len = sizeof(IMHeader) +  msg.ByteSize();
+            header.len = sizeof(IMHeader) + msg.ByteSize();
             header.version = kProtocolVersion;
 
             evpp::Buffer buffer(header.len);
-            buffer.AppendInt32((int32_t)header.len);
-            buffer.AppendInt16((int16_t)kProtocolVersion);
+            buffer.AppendInt32((int32_t) header.len);
+            buffer.AppendInt16((int16_t) kProtocolVersion);
             buffer.AppendInt16(0);
             buffer.AppendInt16(0);
-            buffer.AppendInt16((int16_t)header.cmd);
-            buffer.AppendInt16((int16_t)header.seq);
+            buffer.AppendInt16((int16_t) header.cmd);
+            buffer.AppendInt16((int16_t) header.seq);
             buffer.AppendInt16(0);
 
             //buffer.Write(&header, sizeof(IMHeader));
@@ -142,7 +147,7 @@ namespace cim {
             return kError;
         }
 
-        void Client::onConnectionStatusChanged(const evpp::TCPConnPtr& conn) {
+        void Client::onConnectionStatusChanged(const evpp::TCPConnPtr &conn) {
             if (conn->IsConnecting()) {
                 conn_status_ = kConnectOk;
 
@@ -174,7 +179,7 @@ namespace cim {
             }
         }
 
-        void Client::onMessage(const evpp::TCPConnPtr& conn, evpp::Buffer* buffer) {
+        void Client::onMessage(const evpp::TCPConnPtr &conn, evpp::Buffer *buffer) {
             LogDebug("remoteIp={},dataLen={}", conn->remote_addr(), buffer->size());
 
             if (buffer->size() <= sizeof(IMHeader)) {
@@ -184,9 +189,9 @@ namespace cim {
 
             // tcp 粘包
             while (true) {
-                IMHeader header = { 0 };
-                header.len = static_cast<uint32_t>(buffer->ReadInt32());			// 头+数据部的总长
-                int reset_len = buffer->length() - header.len + sizeof(uint32_t);	// 注意已读4字节
+                IMHeader header = {0};
+                header.len = static_cast<uint32_t>(buffer->ReadInt32());            // 头+数据部的总长
+                int reset_len = buffer->length() - header.len + sizeof(uint32_t);    // 注意已读4字节
 
                 // 坏包，数据部长度超过buffer里面的，全部丢弃。
                 if (header.len - sizeof(uint32_t) > buffer->size()) {
@@ -223,18 +228,18 @@ namespace cim {
             buffer->Reset();
         }
 
-        void Client::onHandleData(const IMHeader* header, evpp::Buffer* buffer) {
+        void Client::onHandleData(const IMHeader *header, evpp::Buffer *buffer) {
             LogDebug("cmd={},seq={},len={}", header->cmd, header->seq, header->len);
 
             switch (header->cmd) {
-            case CIM::Def::kCIM_CID_LOGIN_AUTH_RSP:
-                onHandleAuthRsp(header, buffer);
-                break;
+                case CIM::Def::kCIM_CID_LOGIN_AUTH_RSP:
+                    onHandleAuthRsp(header, buffer);
+                    break;
 
-            default:
-                LogInfo("unknown cmd={}", header->cmd);
-                buffer->Skip(header->len);
-                break;
+                default:
+                    LogInfo("unknown cmd={}", header->cmd);
+                    buffer->Skip(header->len);
+                    break;
             }
         }
 
@@ -243,7 +248,7 @@ namespace cim {
             return seq_;
         }
 
-        void Client::onHandleAuthRsp(const IMHeader* header, evpp::Buffer* buffer) {
+        void Client::onHandleAuthRsp(const IMHeader *header, evpp::Buffer *buffer) {
             CIM::Login::CIMAuthRsp rsp;
 
             PARSE_PB_AND_CHECK(rsp, buffer);

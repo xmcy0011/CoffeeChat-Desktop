@@ -53,8 +53,8 @@ namespace cim {
     const uint16_t kDefaultGateSrvPort = 8000;
     const uint16_t kDefaultHttpSrvPort = 18080;
 
-    const std::wstring kDefaultAppDataDir = L"data";
-    const std::wstring kDefaultAppDataFilename = L"msg.db";
+    const std::string kDefaultAppDataDir = "data";
+    const std::string kDefaultAppDataFilename = "msg.db";
 
     struct ConfigServerInfo {
         std::string ip;								// 服务器IP地址
@@ -63,7 +63,7 @@ namespace cim {
     };
 
     struct AppConfig {
-        std::wstring app_data_dir = kDefaultAppDataDir; // 存储目录
+        std::string app_data_dir = kDefaultAppDataDir; // 存储目录
     };
 
     struct ChatKitConfig {

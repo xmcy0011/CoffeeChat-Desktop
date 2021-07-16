@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "user_manager.h"
 
 #include "cim/cim.h"
@@ -6,9 +5,11 @@
 #include "cim/crypt/md5.h"
 #include "cim/base/Log.h"
 
-#include "json/json.h"
+#include "nlohmann/json.hpp"
+#include "restclient-cpp/restclient.h"
 
-#include <restclient-cpp/restclient.h>
+// for convenience
+using json = nlohmann::json;
 
 namespace cim {
     namespace core {
@@ -16,43 +17,48 @@ namespace cim {
         const double kHttpTimeout = 3; // s
         const std::string kUrlRegisterUser = "/user/register";
 
-        const std::string kDefaultHttpErrorMsg = "Î´Öª´íÎó";
+        const std::string kDefaultHttpErrorMsg = "æœªçŸ¥é”™è¯¯";
 
-        UserManager* UserManager::getInstance() {
+        UserManager *UserManager::getInstance() {
             static UserManager instance;
             return &instance;
         }
 
-        bool UserManager::registerUser(std::string userName, std::string userPwd, std::string nickName, HttpResponseBase& out) {
-            std::string url = "http://" + cim::getChatKitConfig().serverInfo.ip + ":" + std::to_string(cim::getChatKitConfig().serverInfo.httpPort) + kUrlRegisterUser;
+        bool UserManager::registerUser(std::string userName, std::string userPwd, std::string nickName,
+                                       HttpResponseBase &out) {
+            std::string url = "http://" + cim::getChatKitConfig().serverInfo.ip + ":" +
+                              std::to_string(cim::getChatKitConfig().serverInfo.httpPort) + kUrlRegisterUser;
 
             MD5 md;
             md.update(userPwd);
             std::string pwd = md.toString();
 
-            Json::Value root;
+            json root;
             root["userName"] = userName;
             root["userNickName"] = nickName;
             root["userPwd"] = pwd;
 
             LogInfo("register url={},userName={},userPwd={},nickName={}", url, userName, pwd, nickName);
 
-            auto res = RestClient::post(url, "application/json; charset=utf-8", root.toStyledString());
+            auto res = RestClient::post(url, "application/json; charset=utf-8", root.dump());
 
             if (res.code != 200) {
                 return false;
 
             } else {
-                Json::Value value;
-                std::unique_ptr<Json::Reader> reader = std::make_unique<Json::Reader>(Json::Features::strictMode());
+                json value = json::parse(res.body);
 
-                if (reader->parse(res.body, value)) {
-                    out.code = value["error_code"].asInt();
-                    out.msg = value["error_msg"].asString();
+                if (!value.is_null()) {
+                    out.code = value["error_code"].get<int>();
+                    out.msg = value["error_msg"].get<std::string>();
 
                     LogInfo("register code={},msg={}", out.code, out.msg);
+                    return true;
+                } else {
+                    LogInfo("parse json error:{}", res.body);
                 }
             }
+            return false;
         }
 
         UserManager::UserManager() = default;
