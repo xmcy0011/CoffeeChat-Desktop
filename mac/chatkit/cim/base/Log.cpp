@@ -1,5 +1,6 @@
 #include "Log.h"
 
+#include "cim/base/file/file_util.h"
 #include <unistd.h>
 
 cim::ZLogger &GetInstance() {
@@ -10,7 +11,7 @@ cim::ZLogger &GetInstance() {
 namespace cim {
     ZLogger::ZLogger() {
         if (::access("logs", 0) == -1) {
-            ::mkdir("logs", 0777);
+            cim::base::CreateDirectory("logs");
         }
 
         //设置为异步日志

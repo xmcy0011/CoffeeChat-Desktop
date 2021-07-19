@@ -17,7 +17,7 @@ namespace cim {
     int initChatKit(const ChatKitConfig &config) {
 
 #ifdef _WINDOWS_
-        // evpp windowsÏÂ ĞèÒª³õÊ¼»¯socket
+        // evpp windowsä¸‹ éœ€è¦åˆå§‹åŒ–socket
         WSADATA wsaData;
 
         if (WSAStartup(0x0202, &wsaData) != 0) {

@@ -1,0 +1,146 @@
+cmake_minimum_required(VERSION 3.14)
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE ON)
+
+set(ChatKitLib chatkit)
+set(ChatKitLib_VERSION 3.4.1)
+
+project(${ChatKitLib} VERSION 0.1 LANGUAGES CXX)
+
+add_definitions(
+        -g
+        -fPIC
+        -D__STDC_FORMAT_MACROS
+        -Wall
+        -Wno-unused-parameter
+        -Wno-unused-function
+        -Wno-unused-const-variable
+        -Wno-unused-variable
+        -Wno-unused-value
+        -Wshadow
+        -Wcast-qual
+        -Wcast-align
+        -Wwrite-strings
+        -Wsign-compare
+        -Winvalid-pch
+        -fms-extensions
+        -Wfloat-equal
+        -Wextra
+        #-Werror # 警告视为错误，比较严格，可以根据需求启用
+        -std=c++14
+)
+
+# 源码文件
+file(GLOB CHAT_KIT_SRC
+        cim/*/*.h cim/*/*.cpp cim/*/*.cc
+        cim/base/util/*.*
+        cim/base/file/*.*
+        cim/*.h
+        cim/*.cpp
+        )
+
+# 导出的头文件，使用install给其他cmake项目使用
+file(GLOB chatkit_PUBLIC_HEADERS *.h)
+file(GLOB chatkit_BASE_PUBLIC_HEADERS base/*.h)
+file(GLOB chatkit_CORE_PUBLIC_HEADERS core/*.h)
+file(GLOB chatkit_PB_PUBLIC_HEADERS pb/*.h)
+
+#find_package(protobuf REQUIRED)
+#find_package(spdlog REQUIRED)
+#find_package(SQLiteCpp REQUIRED)
+#find_package(nlohmann_json REQUIRED)
+
+if(APPLE)
+    set(VCPKG_INCLUDE_DIR /Users/xuyc/repo/github/vcpkg/installed/x64-osx/include)
+    set(VCPKG_LIB_DIR /Users/xuyc/repo/github/vcpkg/installed/x64-osx/lib)
+endif()
+
+include_directories(. ${VCPKG_INCLUDE_DIR})
+link_directories(${VCPKG_LIB_DIR})
+
+# 动态库
+add_library(${ChatKitLib} ${CHAT_KIT_SRC})
+#add_library(${ChatKitLib} STATIC)
+
+target_link_libraries(${ChatKitLib}
+        # 静态库
+        llibprotobuf-lite
+        lspdlog
+        lSQLiteCpp
+        lnlohmann_json)
+
+# 下面是导出，以便给其他CMake项目使用
+# 设置各种属性
+include(GenerateExportHeader)
+generate_export_header(${ChatKitLib})
+
+set_property(TARGET ${ChatKitLib} PROPERTY VERSION ${ChatKitLib_VERSION})
+set_property(TARGET ${ChatKitLib} PROPERTY SOVERSION 3)
+set_property(TARGET ${ChatKitLib} PROPERTY
+        INTERFACE_ClimbingStats_MAJOR_VERSION 3)
+set_property(TARGET ${ChatKitLib} APPEND PROPERTY
+        COMPATIBLE_INTERFACE_STRING ClimbingStats_MAJOR_VERSION
+        )
+
+install(TARGETS ${ChatKitLib} EXPORT ${ChatKitLib}Targets
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+        INCLUDES DESTINATION include
+        )
+
+# 导出头文件
+file(GLOB chatkit_PUBLIC_HEADERS *.h)
+file(GLOB chatkit_BASE_PUBLIC_HEADERS base/*.h)
+file(GLOB chatkit_CORE_PUBLIC_HEADERS core/*.h)
+file(GLOB chatkit_PB_PUBLIC_HEADERS pb/*.h)
+
+install(FILES ${chatkit_PUBLIC_HEADERS} DESTINATION "include/cim")
+install(FILES ${chatkit_BASE_PUBLIC_HEADERS} DESTINATION "include/cim/base")
+install(FILES ${chatkit_CORE_PUBLIC_HEADERS} DESTINATION "include/cim/core")
+install(FILES ${chatkit_PB_PUBLIC_HEADERS} DESTINATION "include/cim/pb")
+
+# 准备打包？
+# 以下例子来源于官网文档：https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/${ChatKitLib}/${ChatKitLib}ConfigVersion.cmake"
+        VERSION ${ChatKitLib_VERSION}
+        COMPATIBILITY AnyNewerVersion
+)
+
+# 这是干啥用的？
+export(EXPORT ${ChatKitLib}Targets
+        FILE "${CMAKE_CURRENT_BINARY_DIR}/${ChatKitLib}/${ChatKitLib}Targets.cmake"
+        NAMESPACE cim::
+        )
+configure_file(cmake/${ChatKitLib}Config.cmake
+        "${CMAKE_CURRENT_BINARY_DIR}/${ChatKitLib}/${ChatKitLib}Config.cmake"
+        COPYONLY
+        )
+
+# 这是什么文件？
+# chatkitTargets.cmake
+set(ConfigPackageLocation lib/cmake/${ChatKitLib})
+install(EXPORT ${ChatKitLib}Targets
+        FILE
+        ${ChatKitLib}Targets.cmake
+        NAMESPACE
+        cim::
+        DESTINATION
+        ${ConfigPackageLocation}
+        )
+
+# 这是什么文件？
+# chatkitConfig.cmake
+# chatkitConfigVersion.cmake
+install(
+        FILES
+        cmake/${ChatKitLib}Config.cmake
+        "${CMAKE_CURRENT_BINARY_DIR}/${ChatKitLib}/${ChatKitLib}ConfigVersion.cmake"
+        DESTINATION
+        ${ConfigPackageLocation}
+        COMPONENT
+        Devel
+)

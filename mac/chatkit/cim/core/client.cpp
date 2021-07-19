@@ -1,8 +1,6 @@
 #include "cim/core/client.h"
 #include "cim/base/Log.h"
 
-#include <memory>
-
 #include <evpp/event_loop.h>
 #include <evpp/event_loop_thread.h>
 #include <evpp/tcp_conn.h>
@@ -28,7 +26,8 @@ namespace cim {
                 conn_status_(kDefault),
                 is_login_(false),
                 user_id_(0) {
-            loop_ = std::make_unique<evpp::EventLoopThread>();
+            // std::make_unique c++14才有，使用spdlog中的封装
+            loop_ = spdlog::details::make_unique<evpp::EventLoopThread>();
             // start loop
             loop_->Start(true);
         }
@@ -61,7 +60,7 @@ namespace cim {
                                     std::to_string(cim::getChatKitConfig().serverInfo.gatePort);
 
             if (tcp_client_ == nullptr) {
-                tcp_client_ = std::make_unique<evpp::TCPClient>(loop_.get()->loop(), end_point, "tcp_client");
+                tcp_client_ = spdlog::details::make_unique<evpp::TCPClient>(loop_.get()->loop(), end_point, "tcp_client");
 
                 // bind callback
                 tcp_client_->SetConnectionCallback(
