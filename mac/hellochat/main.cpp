@@ -1,29 +1,11 @@
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
+#include "mainwindow.h"
 
-//#include "cim/cim.h"
+#include <QApplication>
 
-int main(int argc, char *argv[]) {
-//    cim::core::Client::getInstance()->login("", "", [](const CIM::Login::CIMAuthRsp &rsp) {
-//        LogInfo("login res");
-//    }, []() {
-//        LogDebug("login time out.");
-//    });
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-#endif
-
-    QGuiApplication app(argc, argv);
-
-    QQmlApplicationEngine engine;
-    const QUrl url(QStringLiteral("qrc:/main.qml"));
-    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
-                     &app, [url](QObject *obj, const QUrl &objUrl) {
-                if (!obj && url == objUrl)
-                    QCoreApplication::exit(-1);
-            }, Qt::QueuedConnection);
-    engine.load(url);
-
-    return app.exec();
+int main(int argc, char *argv[])
+{
+    QApplication a(argc, argv);
+    MainWindow w;
+    w.show();
+    return a.exec();
 }
