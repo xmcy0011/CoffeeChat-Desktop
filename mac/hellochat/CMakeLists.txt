@@ -1,13 +1,19 @@
-project(hellochat VERSION 0.1 LANGUAGES CXX)
+project(hellochat)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+# 自动调用moc，uic，rcc处理qt的扩展部分
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# 版本号设置
+set(PROJECT_VERSION 1.0)
+set(PROJECT_VERSION_MAJOR 1)
+set(PROJECT_VERSION_MINOR 0)
 
 # The Qt SDK path
 set(QT_SDK_DIR "/Users/xuyc/Qt/5.12.11/clang_64/")
@@ -21,6 +27,9 @@ set(PROJECT_SOURCES
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
+        logindialog.h
+        logindialog.cpp
+        logindialog.ui
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -49,7 +58,7 @@ endif()
 target_link_libraries(hellochat PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
 set_target_properties(hellochat PROPERTIES
-    MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
+    MACOSX_BUNDLE_GUI_IDENTIFIER cim.com
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
 )
