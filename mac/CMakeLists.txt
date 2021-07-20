@@ -30,7 +30,8 @@ add_definitions(
 add_subdirectory(hellochat)
 
 # 生成demo
-#set(BUILD_DEMO true)
+set(BUILD_DEMO true)
 if (BUILD_DEMO)
     add_subdirectory(test/client)
+    add_subdirectory(test/libuvdemo)
 endif ()

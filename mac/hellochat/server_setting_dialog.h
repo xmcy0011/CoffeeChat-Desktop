@@ -14,6 +14,9 @@ class ServerSettingDialog : public QDialog {
   explicit ServerSettingDialog(QWidget *parent = nullptr);
   ~ServerSettingDialog();
 
+ private slots:
+  void on_pushButton_clicked();
+
  private:
   Ui::ServerSettingDialog *ui;
 };
