@@ -31,6 +31,9 @@ set(PROJECT_SOURCES
         logindialog.cpp
         logindialog.ui
         resource.qrc
+        server_setting_dialog.h
+        server_setting_dialog.cpp
+        server_setting_dialog.ui
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

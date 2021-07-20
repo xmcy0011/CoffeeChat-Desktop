@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/login">
         <file>images/coffeechat.png</file>
+        <file>images/btn-setting.png</file>
     </qresource>
 </RCC>
