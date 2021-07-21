@@ -27,6 +27,7 @@ int initChatKit(const ChatKitConfig &config) {
     g_config = config;
 
     // init loop
+    cim::base::TcpClient::runLoopInThread();
     cim::core::Client::getInstance();
 
     // init db
@@ -42,6 +43,7 @@ CIM_DLL_API void cleanup() {
     cim::db::SqliteHelper::getInstance()->cleanup();
 
     cim::core::Client::getInstance()->logout();
+    cim::base::TcpClient::stopLoop();
 }
 
 CIM_DLL_API void setChatKitServerInfo(const ConfigServerInfo &info) { g_config.serverInfo = info; }

@@ -17,7 +17,6 @@ namespace cim {
 namespace core {
 
 Client::Client() : tcp_client_(nullptr), recv_buffer_(nullptr), is_login_(false), user_id_(0), seq_(0) {
-    TcpClient::runLoopInThread();
     recv_buffer_ = new Buffer();
 }
 

@@ -35,7 +35,7 @@ add_library(cim::chatkit ALIAS ${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME}
         PUBLIC
-        ${PROJECT_SOURCE_DIR}
+        ${PROJECT_SOURCE_DIR} # chatKit目录，这样外部就能找到头文件所在目录了
         ${VCPKG_INCLUDE_DIR}
         )
 target_link_directories(${PROJECT_NAME}

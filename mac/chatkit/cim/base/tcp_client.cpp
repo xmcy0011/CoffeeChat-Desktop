@@ -7,11 +7,11 @@
 #include "tcp_client.h"
 
 #include <atomic>
-#include <iostream>
 #include <memory>
 #include <thread>
 #include <unordered_map>
 
+#include "cim/base/Log.h"
 #include "uv.h"
 
 using namespace std;
@@ -45,7 +45,7 @@ TcpClient::TcpClient()
     , server_port_(0) {}
 
 TcpClient::~TcpClient() {
-    cout << " deconstruct " << endl;
+    //    cout << " deconstruct " << endl;
 
     close();
 }
@@ -61,30 +61,30 @@ bool TcpClient::connect(const std::string &serverIp, uint16_t port) {
     tcp_handle_ = (uv_tcp_t *)malloc(sizeof(uv_tcp_t));
     int ret = uv_tcp_init(uv_default_loop(), tcp_handle_);
     if (ret == kInvalidSocket) {
-        cout << "uv_tcp_init error:" << errno << endl;
+        LogWarn("uv_tcp_init error:{}", errno);
         return false;
     }
 
     struct sockaddr_in remote_addr {};
     ret = uv_ip4_addr(serverIp.c_str(), port, &remote_addr);
     if (ret == kInvalidSocket) {
-        cout << "uv_ip4_addr error:" << errno << endl;
+        LogWarn("uv_ip4_addr error:{}", errno);
         return false;
     }
 
     connect_status_ = ConnectionStatus::kConnecting;
 
     auto connect = (uv_connect_t *)malloc(sizeof(uv_connect_t));
-    if (0 == uv_tcp_connect(connect, tcp_handle_, (const struct sockaddr *)&remote_addr, onConnect)) {
+    ret = uv_tcp_connect(connect, tcp_handle_, (const struct sockaddr *)&remote_addr, onConnect);
+    if (0 == ret) {
         // get socket fd
         uv_fileno((uv_handle_t *)tcp_handle_, &sock_fd_);
         g_conn_map[sock_fd_] = shared_from_this();
 
-        cout << "connect to " << serverIp << ":" << port << ",fd=" << sock_fd_ << ",handle type=" << tcp_handle_->type
-             << endl;
+        LogDebug("connect to {}:{}, fd={}, handle type={}", serverIp, port, sock_fd_, tcp_handle_->type);
         return true;
     } else {
-        cout << "connect error" << endl;
+        LogWarn("connect error:{}", ret);
         close();
     }
     return false;
@@ -104,7 +104,7 @@ void TcpClient::close() {
 }
 
 int TcpClient::send(const char *buff, int len) {
-    assert(connect_status_ != ConnectionStatus::kConnectOk);
+    assert(connect_status_ == ConnectionStatus::kConnectOk);
 
 #ifdef USE_UV_SEND
     auto *req = (write_req_t *)malloc(sizeof(write_req_t));
@@ -142,17 +142,18 @@ void TcpClient::onTimer(uv_timer_s *timer) {
 
 void TcpClient::onConnect(uv_connect_s *req, int status) {
     if (status == 0) {
-        cout << "connect success" << endl;
-
         auto tcpClient = findTcpClient(req->handle);
+        assert(tcpClient != nullptr);
         if (tcpClient != nullptr) {
             tcpClient->setConnectionStatus(ConnectionStatus::kConnectOk);
+
+            LogInfo("connect remote:{} success", tcpClient->remoteAddr());
         }
 
         // 注册read事件
         uv_read_start(req->handle, alloc_buffer, onRead);
     } else {
-        cout << "connection lost, changed to " << status << endl;
+        LogDebug("connection lost, changed to {}", status);
         auto tcpClient = findTcpClient(req->handle);
         if (tcpClient != nullptr) {
             tcpClient->close();
@@ -208,7 +209,7 @@ TcpClientPtr TcpClient::findTcpClient(uv_stream_s *handle) {
     if (g_conn_map.find(sockFd) != g_conn_map.end()) {
         return g_conn_map[sockFd];
     } else {
-        cout << "not find fd=" << sockFd << endl;
+        LogWarn("not find fd={}", sockFd);
     }
     return nullptr;
 }
@@ -223,7 +224,7 @@ void TcpClient::runLoopInThread() {
         std::thread t([&]() {
             auto loop = uv_default_loop();
             uv_run(loop, UV_RUN_DEFAULT);
-            cout << "uv loop is success stop" << endl;
+            LogDebug("uv loop is success stop");
         });
         t.detach();
     }
