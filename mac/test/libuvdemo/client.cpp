@@ -7,16 +7,16 @@
 #include <iostream>
 #include <thread>
 
-#include "tcp_client.h"
+#include "uv_tcp_client.h"
 
 int main() {
-    cim::TcpClient::runLoopInThread(); // must run before connect
+    UvTcpClient::runLoopInThread(); // must run before connect
 
-    cim::TcpClientPtr client = std::make_shared<cim::TcpClient>();
-    client->setConnectionCallback([](const cim::TcpClientPtr &, cim::ConnectionStatus status) {
+    UvTcpClientPtr client = std::make_shared<UvTcpClient>();
+    client->setConnectionCallback([](const UvTcpClientPtr &, ConnectionStatus status) {
         std::cout << "ConnectionCallback: connect status change to " << (int)status << std::endl;
     });
-    client->setMessageCallback([](const cim::TcpClientPtr &, char *buf, int len) {
+    client->setMessageCallback([](const UvTcpClientPtr &, char *buf, int len) {
         std::cout << "MessageCallback: " << std::string(buf, len) << std::endl;
     });
 
@@ -39,6 +39,6 @@ int main() {
 
     client->close();
 
-    cim::TcpClient::stopLoop();
+    UvTcpClient::stopLoop();
     return 0;
 }

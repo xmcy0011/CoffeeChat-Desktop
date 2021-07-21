@@ -17,8 +17,6 @@ struct uv_buf_t;
 struct uv_timer_s;
 struct uv_stream_s;
 
-namespace cim {
-
 enum class ConnectionStatus {
     kDefault,
     kConnecting,
@@ -26,32 +24,34 @@ enum class ConnectionStatus {
     kConnected,
 };
 
-class TcpClient;
+class UvTcpClient;
 
-typedef std::shared_ptr<TcpClient> TcpClientPtr;
-typedef std::function<void(const TcpClientPtr &, ConnectionStatus status)> ConnectionCallback;
-typedef std::function<void(const TcpClientPtr &, char *buf, int len)> MessageCallback;
+typedef std::shared_ptr<UvTcpClient> UvTcpClientPtr;
+typedef std::function<void(const UvTcpClientPtr &, ConnectionStatus status)> ConnectionCallback;
+typedef std::function<void(const UvTcpClientPtr &, char *buf, int len)> MessageCallback;
+
+// #define USE_LIBUV_WRITE // 使用libuv的write函数发送数据
 
 /** @class libuv_tcp_client
  * @brief
  */
-class TcpClient : public std::enable_shared_from_this<TcpClient> {
+class UvTcpClient : public std::enable_shared_from_this<UvTcpClient> {
 public:
-    TcpClient();
+    UvTcpClient();
 
-    virtual ~TcpClient();
+    virtual ~UvTcpClient();
 
-    TcpClient(const TcpClient &) = delete;
+    UvTcpClient(const UvTcpClient &) = delete;
 
-    TcpClient(const TcpClient &&) = delete;
+    UvTcpClient(const UvTcpClient &&) = delete;
 
-    TcpClient operator=(const TcpClient &) = delete;
+    UvTcpClient operator=(const UvTcpClient &) = delete;
 
     bool connect(const std::string &serverIp, uint16_t port);
 
     void close();
 
-    void send(const char *buff, int len);
+    int send(const char *buff, int len);
 
     void setConnectionCallback(const ConnectionCallback &cb);
 
@@ -72,11 +72,13 @@ private:
 
     static void onConnect(uv_connect_s *req, int status);
 
+#ifdef USE_LIBUV_WRITE
     static void onWrite(uv_write_s *req, int status);
+#endif
 
     static void onRead(uv_stream_s *client, ssize_t nread, const uv_buf_t *buf);
 
-    static TcpClientPtr findTcpClient(uv_stream_s *handle);
+    static UvTcpClientPtr findTcpClient(uv_stream_s *handle);
 
 private:
     uv_tcp_s *tcp_handle_;
@@ -87,5 +89,4 @@ private:
     MessageCallback message_cb_;
 };
 
-} // namespace cim
 #endif // MAC_LIBUV_TCP_CLIENT_H_

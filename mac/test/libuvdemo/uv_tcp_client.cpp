@@ -4,7 +4,7 @@
  * @date 2021/7/20
  */
 
-#include "tcp_client.h"
+#include "uv_tcp_client.h"
 
 #include <atomic>
 #include <iostream>
@@ -16,16 +16,16 @@
 
 using namespace std;
 
-namespace cim {
-
+#ifdef USE_LIBUV_WRITE
 typedef struct {
     uv_write_t req;
     uv_buf_t buf;
 } write_req_t;
+#endif
 
 const int kInvalidSocket = -1;
 static atomic_bool g_is_thread_loop_init_(false);
-static std::unordered_map<int, TcpClientPtr> g_conn_map{};
+static std::unordered_map<int, UvTcpClientPtr> g_conn_map{};
 static uv_timer_s *g_timer_ = nullptr;
 
 void alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
@@ -33,20 +33,20 @@ void alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
     buf->len = suggested_size;
 }
 
-TcpClient::TcpClient()
+UvTcpClient::UvTcpClient()
     : tcp_handle_(nullptr)
     , sock_fd_(0)
     , connect_status_(ConnectionStatus::kDefault)
     , connection_cb_(nullptr)
     , message_cb_(nullptr) {}
 
-TcpClient::~TcpClient() {
+UvTcpClient::~UvTcpClient() {
     cout << " deconstruct " << endl;
 
     close();
 }
 
-bool TcpClient::connect(const std::string &serverIp, uint16_t port) {
+bool UvTcpClient::connect(const std::string &serverIp, uint16_t port) {
     close();
 
     assert(g_is_thread_loop_init_);
@@ -83,7 +83,7 @@ bool TcpClient::connect(const std::string &serverIp, uint16_t port) {
     return false;
 }
 
-void TcpClient::close() {
+void UvTcpClient::close() {
     if (tcp_handle_ != nullptr) {
         uv_close((uv_handle_t *)tcp_handle_, nullptr);
         // libuv will free it?
@@ -96,37 +96,41 @@ void TcpClient::close() {
     connect_status_ = ConnectionStatus::kDisConnected;
 }
 
-void TcpClient::send(const char *buff, int len) {
-    auto *req = (write_req_t *)malloc(sizeof(write_req_t));
-
-    char *tempBuf = static_cast<char *>(malloc(len));
-    ::memcpy(tempBuf, buff, len);
-    req->buf = uv_buf_init(tempBuf, len);
-
-    uv_write((uv_write_t *)req, (uv_stream_t *)tcp_handle_, &req->buf, 1, onWrite);
+int UvTcpClient::send(const char *buff, int len) {
+#ifdef USE_LIBUV_WRITE
+    //    auto *req = (write_req_t *)malloc(sizeof(write_req_t));
+    //
+    //    char *tempBuf = static_cast<char *>(malloc(len));
+    //    ::memcpy(tempBuf, buff, len);
+    //    req->buf = uv_buf_init(tempBuf, len);
+    //
+    //    uv_write((uv_write_t *)req, (uv_stream_t *)tcp_handle_, &req->buf, 1, onWrite);
+#else
+    return ::send(sock_fd_, buff, len, 0);
+#endif
 }
 
-void TcpClient::setConnectionCallback(const ConnectionCallback &cb) { connection_cb_ = cb; }
+void UvTcpClient::setConnectionCallback(const ConnectionCallback &cb) { connection_cb_ = cb; }
 
-void TcpClient::setMessageCallback(const MessageCallback &cb) { message_cb_ = cb; }
+void UvTcpClient::setMessageCallback(const MessageCallback &cb) { message_cb_ = cb; }
 
-void TcpClient::setConnectionStatus(ConnectionStatus status) {
+void UvTcpClient::setConnectionStatus(ConnectionStatus status) {
     connect_status_ = status;
     if (connection_cb_) {
         connection_cb_(shared_from_this(), connect_status_);
     }
 }
 
-void TcpClient::onTimer() {}
+void UvTcpClient::onTimer() {}
 
-void TcpClient::onTimer(uv_timer_s *timer) {
+void UvTcpClient::onTimer(uv_timer_s *timer) {
     // std::cout << "timer from libuv, id=" << timer->start_id << ",time=" << time(nullptr) << std::endl;
     for (auto &item : g_conn_map) {
         item.second->onTimer();
     }
 }
 
-void TcpClient::onConnect(uv_connect_s *req, int status) {
+void UvTcpClient::onConnect(uv_connect_s *req, int status) {
     if (status == 0) {
         cout << "connect success" << endl;
 
@@ -147,7 +151,8 @@ void TcpClient::onConnect(uv_connect_s *req, int status) {
     }
 }
 
-void TcpClient::onWrite(uv_write_s *req, int status) {
+#if USE_LIBUV_WRITE
+void UvTcpClient::onWrite(uv_write_s *req, int status) {
     if (status == 0) {
         // cout << "write succeed!" << endl;
     } else {
@@ -159,8 +164,9 @@ void TcpClient::onWrite(uv_write_s *req, int status) {
     free(wr->buf.base);
     free(wr);
 }
+#endif
 
-void TcpClient::onRead(uv_stream_s *client, ssize_t nread, const uv_buf_t *buf) {
+void UvTcpClient::onRead(uv_stream_s *client, ssize_t nread, const uv_buf_t *buf) {
     if (nread > 0) {
         // cout << "recv len=" << nread << ",bff_size=" << buf->len << endl;
 
@@ -183,7 +189,7 @@ void TcpClient::onRead(uv_stream_s *client, ssize_t nread, const uv_buf_t *buf) 
     }
 }
 
-TcpClientPtr TcpClient::findTcpClient(uv_stream_s *handle) {
+UvTcpClientPtr UvTcpClient::findTcpClient(uv_stream_s *handle) {
     int sockFd = kInvalidSocket;
     assert(uv_fileno((uv_handle_t *)handle, &sockFd) == 0);
 
@@ -195,7 +201,7 @@ TcpClientPtr TcpClient::findTcpClient(uv_stream_s *handle) {
     return nullptr;
 }
 
-void TcpClient::runLoopInThread() {
+void UvTcpClient::runLoopInThread() {
     if (!g_is_thread_loop_init_) {
         g_is_thread_loop_init_ = true;
 
@@ -211,7 +217,7 @@ void TcpClient::runLoopInThread() {
     }
 }
 
-void TcpClient::stopLoop() {
+void UvTcpClient::stopLoop() {
     for (auto &item : g_conn_map) {
         item.second->close();
     }
@@ -221,5 +227,3 @@ void TcpClient::stopLoop() {
 
     uv_stop(uv_default_loop());
 }
-
-} // namespace cim

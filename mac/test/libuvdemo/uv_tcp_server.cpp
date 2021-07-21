@@ -4,7 +4,7 @@
  * @date 2021/7/20
  */
 
-#include "tcp_server.h"
+#include "uv_tcp_server.h"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -16,15 +16,13 @@
 
 using namespace std;
 
-namespace cim {
-
 const int kSocketError = -1;
 
-TcpServer* TcpServer::getInstance() {
-    static TcpServer instance;
+UvTcpServer* UvTcpServer::getInstance() {
+    static UvTcpServer instance;
     return &instance;
 }
-void TcpServer::run(int listen_port) {
+void UvTcpServer::run(int listen_port) {
     listen_fd_ = ::socket(PF_INET, SOCK_STREAM, 0);
     if (listen_fd_ == -1) {
         cout << "create socket error:" << errno << endl;
@@ -51,15 +49,15 @@ void TcpServer::run(int listen_port) {
     }
 
     threadProc(); // run in main thread
-    //    auto cb = std::bind(&TcpServer::threadProc, this);
+    //    auto cb = std::bind(&UvTcpServer::threadProc, this);
     //    std::thread thread(cb);
     //    thread.detach();
 }
-void TcpServer::stop() {
+void UvTcpServer::stop() {
     run_ = false;
     close(listen_fd_);
 }
-void TcpServer::threadProc() {
+void UvTcpServer::threadProc() {
     // 死循环，永不退出
     while (run_) {
         struct sockaddr_in peerAddr {};
@@ -96,5 +94,3 @@ void TcpServer::threadProc() {
         std::cout << "remote " << ::inet_ntoa(peerAddr.sin_addr) << " close the connection" << std::endl;
     }
 }
-
-} // namespace cim

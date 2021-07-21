@@ -10,20 +10,18 @@
 #include <atomic>
 #include <string>
 
-namespace cim {
-
 /** @class tcp_server
  * @brief
  */
-class TcpServer {
+class UvTcpServer {
 public:
-    TcpServer(const TcpServer &) = delete;
+    UvTcpServer(const UvTcpServer &) = delete;
 
-    TcpServer(const TcpServer &&) = delete;
+    UvTcpServer(const UvTcpServer &&) = delete;
 
-    TcpServer operator=(const TcpServer &) = delete;
+    UvTcpServer operator=(const UvTcpServer &) = delete;
 
-    static TcpServer *getInstance();
+    static UvTcpServer *getInstance();
 
 public:
     void run(int listen_port);
@@ -34,13 +32,12 @@ private:
     void threadProc();
 
 private:
-    TcpServer() : run_(true) {}
-    ~TcpServer() = default;
+    UvTcpServer() : run_(true) {}
+    ~UvTcpServer() = default;
 
 private:
     int listen_fd_;
     std::atomic_bool run_;
 };
-} // namespace cim
 
 #endif // MAC_TCP_SERVER_H_
