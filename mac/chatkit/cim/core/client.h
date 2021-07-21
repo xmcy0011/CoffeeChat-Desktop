@@ -26,6 +26,15 @@ using namespace cim::base;
 namespace cim {
 namespace core {
 
+/**
+ * 登录状态
+ */
+enum class LoginStatus {
+    kDefault,
+    kLogining,
+    kLoginOk,
+};
+
 /** @class Client
  * @brief 封装和服务器通信的类，必须认证后才可使用
  * @author fei.xu
@@ -40,24 +49,59 @@ public:
      */
     static Client* getInstance();
 
-    /** @fn
-     * @brief 连接，会自动重连。非线程安全
-     * @param
-     * @return
+    /**
+     * 连接，会自动重连。非线程安全
+     * @param user_name: 用户名
+     * @param pwd: 明文密码，SDK中会进行加密
+     * @param cb: 登录结果
+     * @param timeout_cb: 登录超时回调
      */
     void login(const std::string& user_name, const std::string& pwd, const LoginCallback& cb,
                const TimeoutCallback& timeout_cb);
 
+    /**
+     * 绑定连接状态改变回调
+     * @param cb: 回调
+     */
     void setConnectionCallback(const ConnectionCallback& cb);
 
+    /**
+     * 退出登录
+     */
     void logout();
 
-    ConnectionStatus connStatus();
+    /**
+     * 获取连接状态
+     * @return
+     */
+    ConnectionStatus connStatus() const;
 
-    uint64_t GetUserId() const;
+    /**
+     * 获取登录状态
+     * @return
+     */
+    LoginStatus loginStatus() const { return login_status_; }
 
-    int sendRaw(const char* data, const int& len);
+    /**
+     * 获取用户ID
+     * @return
+     */
+    uint64_t GetUserId() const { return user_id_; }
 
+    /**
+     * 发送裸数据
+     * @param data：缓冲区
+     * @param len：数据长度
+     * @return >0：成功发送长度，=0：对端关闭连接，<0: 错误
+     */
+    int send(const char* data, const int& len);
+
+    /**
+     * 发送信令
+     * @param cmd_id：命令ID
+     * @param msg：数据部内容
+     * @return
+     */
     int send(CIM::Def::CIMCmdID cmd_id, const google::protobuf::MessageLite& msg);
 
 private:
@@ -67,7 +111,7 @@ private:
 
     void onHandleData(const IMHeader* header, Buffer* buffer);
 
-    void onTimer();
+    void onTimer(uv_timer_s* handle);
 
     uint16_t getSeq();
 
@@ -80,13 +124,16 @@ protected:
 private:
     TcpClientPtr tcp_client_;
     Buffer* recv_buffer_;
+    uv_timer_s* timer_;
 
+    LoginStatus login_status_;
+
+    uint64_t last_login_time_;
     uint64_t last_send_time_;
     uint64_t last_recv_time_;
 
     LoginCallback login_cb_;
     TimeoutCallback login_timeout_cb_;
-    atomic<bool> is_login_;
 
     std::string user_name_;
     std::string user_pwd_;

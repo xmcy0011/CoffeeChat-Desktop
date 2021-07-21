@@ -4,24 +4,42 @@
 
 #include "cim/base/log.h"
 #include "cim/cim.h"
+#include "cim/cim_def.h"
 #include "cim/crypt/md5.h"
 #include "cim/pb/CIM.Def.pb.h"
 #include "cim/pb/CIM.Login.pb.h"
+#include "uv.h"
 
 // std::atomic_uint16_t g_seq = 1;
 const uint32_t kMaxBufferLen = 1024 * 10; // 10 KB
-
 const std::string kClientVersion = "0.1"; // 客户端类型
 
 namespace cim {
 namespace core {
 
-Client::Client() : tcp_client_(nullptr), recv_buffer_(nullptr), is_login_(false), user_id_(0), seq_(0) {
+Client::Client()
+    : tcp_client_(nullptr)
+    , recv_buffer_(nullptr)
+    , timer_(nullptr)
+    , login_status_(LoginStatus::kDefault)
+    , last_login_time_(0)
+    , last_send_time_(0)
+    , last_recv_time_(0)
+    , user_id_(0)
+    , seq_(0) {
     recv_buffer_ = new Buffer();
+
+    // 注册心跳定时器
+    auto cb = [](uv_timer_s *handle) { Client::getInstance()->onTimer(handle); };
+    timer_ = EventLoop::registerTimer(cb, 1000);
 }
 
 Client::~Client() {
     logout();
+    if (timer_) {
+        EventLoop::removeTimer(timer_);
+        timer_ = nullptr;
+    }
 }
 
 Client *Client::getInstance() {
@@ -35,6 +53,9 @@ void Client::login(const std::string &user_name, const std::string &pwd, const L
 
     login_cb_ = cb;
     login_timeout_cb_ = timeout_cb;
+
+    login_status_ = LoginStatus::kLogining;
+    last_login_time_ = time(nullptr);
 
     MD5 md;
     md.update(pwd);
@@ -59,14 +80,14 @@ void Client::login(const std::string &user_name, const std::string &pwd, const L
 void Client::setConnectionCallback(const ConnectionCallback &cb) { connection_cb_ = cb; }
 
 void Client::logout() {
-    if (is_login_) {
-        is_login_ = false;
+    if (login_status_ == LoginStatus::kLoginOk) {
+        login_status_ = LoginStatus::kDefault;
         CIM::Login::CIMLogoutReq req;
         req.set_user_id(user_id_);
         req.set_client_type(CIM::Def::kCIM_CLIENT_TYPE_PC_WINDOWS);
         send(CIM::Def::kCIM_CID_LOGIN_AUTH_LOGOUT_REQ, req);
     }
-
+    login_status_ = LoginStatus::kDefault;
     if (tcp_client_) {
         tcp_client_->close();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -75,11 +96,12 @@ void Client::logout() {
     }
 }
 
-ConnectionStatus Client::connStatus() { return tcp_client_->connectionStatus(); }
+ConnectionStatus Client::connStatus() const { return tcp_client_->connectionStatus(); }
 
-uint64_t Client::GetUserId() const { return user_id_; }
-
-int Client::sendRaw(const char *data, const int &len) { return tcp_client_->send(data, len); }
+int Client::send(const char *data, const int &len) {
+    last_send_time_ = time(nullptr);
+    return tcp_client_->send(data, len);
+}
 
 int Client::send(CIM::Def::CIMCmdID cmd_id, const google::protobuf::MessageLite &msg) {
     LogDebug("cmd_id={},bodyLen={}", cmd_id, msg.ByteSizeLong());
@@ -104,7 +126,7 @@ int Client::send(CIM::Def::CIMCmdID cmd_id, const google::protobuf::MessageLite 
     buffer.WriteBytes(msg.ByteSizeLong());
 
     if (connStatus() == ConnectionStatus::kConnectOk) {
-        return sendRaw(buffer.data(), buffer.length());
+        return send(buffer.data(), buffer.length());
     } else {
         LogWarn("connection disconnect");
     }
@@ -116,7 +138,7 @@ void Client::onConnectionStatusChanged(const TcpClientPtr &conn, ConnectionStatu
     LogInfo("connection status={}", status);
 
     // 登录请求
-    if (!is_login_ && status == ConnectionStatus::kConnectOk) {
+    if (status == ConnectionStatus::kConnectOk) {
         CIM::Login::CIMAuthReq req;
         req.set_user_name(user_name_);
         req.set_user_pwd(user_pwd_);
@@ -124,6 +146,16 @@ void Client::onConnectionStatusChanged(const TcpClientPtr &conn, ConnectionStatu
         req.set_client_type(CIM::Def::kCIM_CLIENT_TYPE_PC_WINDOWS);
         send(CIM::Def::kCIM_CID_LOGIN_AUTH_REQ, req);
         LogInfo("connect success, login ... userName={},pwd={}", user_name_, user_pwd_);
+    } else {
+        if (login_status_ == LoginStatus::kLogining) {
+            if (login_cb_) {
+                CIM::Login::CIMAuthRsp rsp;
+                rsp.set_result_code(CIM::Def::CIMErrorCode::kCIM_ERR_INTERNAL_ERROR);
+                rsp.set_result_string("连接服务器失败，网络异常或者服务器异常");
+                login_cb_(rsp);
+            }
+        }
+        logout();
     }
 
     if (connection_cb_) {
@@ -197,7 +229,33 @@ void Client::onHandleData(const IMHeader *header, Buffer *buffer) {
     }
 }
 
-void Client::onTimer() {}
+void Client::onTimer(uv_timer_s *handle) {
+    // handle->start_id
+    uint64_t curTime = time(nullptr);
+
+    // 登录超时检测
+    if (loginStatus() == LoginStatus::kLogining) {
+        uint16_t timeout = cim::getChatKitConfig().loginConfig.login_time_out;
+        if ((curTime - last_login_time_) > timeout) {
+            if (login_timeout_cb_) {
+                login_timeout_cb_();
+            }
+            LogInfo("login timeout");
+        }
+    }
+
+    // 心跳保活
+    if (loginStatus() == LoginStatus::kLoginOk) {
+        uint16_t timeout = cim::getChatKitConfig().loginConfig.keep_alive_time_out;
+        if ((curTime - last_recv_time_) > timeout) {
+            logout();
+            if (connection_cb_) {
+                connection_cb_(tcp_client_, ConnectionStatus::kDisConnected);
+            }
+            LogInfo("heartbeat timeout");
+        }
+    }
+}
 
 uint16_t Client::getSeq() {
     ++seq_;

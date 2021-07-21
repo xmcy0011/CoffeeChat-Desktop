@@ -64,6 +64,10 @@ struct IMHeader {
 const uint16_t kDefaultGateSrvPort = 8000;
 const uint16_t kDefaultHttpSrvPort = 18080;
 
+const uint32_t kLoginTimerOut = 10 * 1000;
+const uint32_t kKeepAliveTimeSpan = 30 * 1000;
+const uint32_t kKeepAliveTimeOut = 90 * 1000;
+
 const std::string kDefaultAppDataDir = "data";
 const std::string kDefaultAppDataFilename = "msg.db";
 
@@ -73,13 +77,21 @@ struct ConfigServerInfo {
     uint16_t httpPort = kDefaultHttpSrvPort; // Http服务端口
 };
 
+struct LoginConfig {
+    uint32_t login_time_out = kLoginTimerOut; // 登录超时时间，默认10秒
+    uint32_t keep_alive_span = kKeepAliveTimeSpan; // 心跳包发送间隔，默认30秒，最长建议在1分钟以内，移动端建议5分钟左右
+    // 心跳超时间隔，默认90秒，如果这期间未收到服务端的响应，则进入掉线逻辑
+    uint32_t keep_alive_time_out = kKeepAliveTimeOut;
+};
+
 struct AppConfig {
     std::string app_data_dir = kDefaultAppDataDir; // 存储目录
 };
 
 struct ChatKitConfig {
     ConfigServerInfo serverInfo; // set by setChatKitServerInfo() or initChatKit()
-    AppConfig appConfig;
+    AppConfig appConfig;         // APP的设置
+    LoginConfig loginConfig;     // 登录的设置项
 };
 
 struct MessageModel {
