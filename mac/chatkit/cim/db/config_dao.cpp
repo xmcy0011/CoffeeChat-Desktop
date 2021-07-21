@@ -1,6 +1,6 @@
 #include "cim/db/config_dao.h"
 
-#include "cim/base/Log.h"
+#include "cim/base/log.h"
 #include "cim/db/sqlite3_helper.h"
 
 namespace cim {

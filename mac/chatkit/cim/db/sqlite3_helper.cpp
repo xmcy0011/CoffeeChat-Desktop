@@ -1,7 +1,7 @@
 #include "sqlite3_helper.h"
 
-#include "cim/base/Log.h"
 #include "cim/base/file/file_util.h"
+#include "cim/base/log.h"
 #include "cim/base/util/string_util.h"
 #include "cim/cim.h"
 #include "cim/db/config_dao.h"

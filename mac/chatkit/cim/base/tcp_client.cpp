@@ -11,7 +11,8 @@
 #include <thread>
 #include <unordered_map>
 
-#include "cim/base/Log.h"
+#include "cim/base/event_loop.h"
+#include "cim/base/log.h"
 #include "uv.h"
 
 using namespace std;
@@ -27,9 +28,7 @@ struct write_req_t {
 #endif
 
 const int kInvalidSocket = -1;
-static atomic_bool g_is_thread_loop_init_(false);
 static std::unordered_map<int, TcpClientPtr> g_conn_map{};
-static uv_timer_s *g_timer_ = nullptr;
 
 void alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
     buf->base = (char *)malloc(suggested_size);
@@ -56,7 +55,7 @@ bool TcpClient::connect(const std::string &serverIp, uint16_t port) {
     server_ip_ = serverIp;
     server_port_ = port;
 
-    assert(g_is_thread_loop_init_);
+    assert(EventLoop::loop_is_run_);
 
     tcp_handle_ = (uv_tcp_t *)malloc(sizeof(uv_tcp_t));
     int ret = uv_tcp_init(uv_default_loop(), tcp_handle_);
@@ -133,13 +132,6 @@ void TcpClient::setConnectionStatus(ConnectionStatus status) {
 
 void TcpClient::onTimer() {}
 
-void TcpClient::onTimer(uv_timer_s *timer) {
-    // std::cout << "timer from libuv, id=" << timer->start_id << ",time=" << time(nullptr) << std::endl;
-    for (auto &item : g_conn_map) {
-        item.second->onTimer();
-    }
-}
-
 void TcpClient::onConnect(uv_connect_s *req, int status) {
     if (status == 0) {
         auto tcpClient = findTcpClient(req->handle);
@@ -212,33 +204,6 @@ TcpClientPtr TcpClient::findTcpClient(uv_stream_s *handle) {
         LogWarn("not find fd={}", sockFd);
     }
     return nullptr;
-}
-
-void TcpClient::runLoopInThread() {
-    if (!g_is_thread_loop_init_) {
-        g_is_thread_loop_init_ = true;
-
-        g_timer_ = (uv_timer_s *)malloc(sizeof(uv_timer_s));
-        uv_timer_init(uv_default_loop(), g_timer_);
-        uv_timer_start(g_timer_, onTimer, 0, 1000);
-        std::thread t([&]() {
-            auto loop = uv_default_loop();
-            uv_run(loop, UV_RUN_DEFAULT);
-            LogDebug("uv loop is success stop");
-        });
-        t.detach();
-    }
-}
-
-void TcpClient::stopLoop() {
-    for (auto &item : g_conn_map) {
-        item.second->close();
-    }
-
-    uv_timer_stop(g_timer_);
-    free(g_timer_);
-
-    uv_stop(uv_default_loop());
 }
 
 std::string TcpClient::remoteAddr() const { return server_ip_ + ":" + std::to_string(server_port_); }

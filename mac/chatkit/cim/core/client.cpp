@@ -2,7 +2,7 @@
 
 #include <thread>
 
-#include "cim/base/Log.h"
+#include "cim/base/log.h"
 #include "cim/cim.h"
 #include "cim/crypt/md5.h"
 #include "cim/pb/CIM.Def.pb.h"
@@ -22,7 +22,6 @@ Client::Client() : tcp_client_(nullptr), recv_buffer_(nullptr), is_login_(false)
 
 Client::~Client() {
     logout();
-    TcpClient::stopLoop();
 }
 
 Client *Client::getInstance() {
@@ -197,6 +196,8 @@ void Client::onHandleData(const IMHeader *header, Buffer *buffer) {
             break;
     }
 }
+
+void Client::onTimer() {}
 
 uint16_t Client::getSeq() {
     ++seq_;

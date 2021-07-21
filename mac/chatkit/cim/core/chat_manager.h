@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "cim/base/Log.h"
+#include "cim/base/log.h"
 #include "cim/base/noncopyable.h"
 #include "cim/cim_dll.h"
 

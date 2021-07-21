@@ -14,8 +14,9 @@
 
 // base
 #include "cim/base/Exception.h"
-#include "cim/base/Log.h"
+#include "cim/base/log.h"
 #include "cim/base/noncopyable.h"
+#include "cim/base/event_loop.h"
 
 // core
 #include "cim/core/callback.h"

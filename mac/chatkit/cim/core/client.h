@@ -67,6 +67,8 @@ private:
 
     void onHandleData(const IMHeader* header, Buffer* buffer);
 
+    void onTimer();
+
     uint16_t getSeq();
 
     void onHandleAuthRsp(const IMHeader* header, Buffer* buffer);
@@ -78,6 +80,9 @@ protected:
 private:
     TcpClientPtr tcp_client_;
     Buffer* recv_buffer_;
+
+    uint64_t last_send_time_;
+    uint64_t last_recv_time_;
 
     LoginCallback login_cb_;
     TimeoutCallback login_timeout_cb_;

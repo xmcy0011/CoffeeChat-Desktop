@@ -42,13 +42,13 @@ typedef std::function<void(const TcpClientPtr &, const char *buf, int len)> Mess
 /** @class TcpClient
  * @brief 封装LibUV，实现tcp client
  * usage:
-    cim::TcpClient::runLoopInThread(); // must run before connect
+    cim::base::EventLoop::runInThread(); // must run before connect
 
-    cim::TcpClientPtr client = std::make_shared<cim::TcpClient>();
-    client->setConnectionCallback([](const cim::TcpClientPtr &, cim::ConnectionStatus status) {
+    cim::base::TcpClientPtr client = std::make_shared<cim::base::TcpClient>();
+    client->setConnectionCallback([](const cim::base::TcpClientPtr &, cim::base::ConnectionStatus status) {
         std::cout << "ConnectionCallback: connect status change to " << (int)status << std::endl;
     });
-    client->setMessageCallback([](const cim::TcpClientPtr &, char *buf, int len) {
+    client->setMessageCallback([](const cim::base::TcpClientPtr &, char *buf, int len) {
         std::cout << "MessageCallback: " << std::string(buf, len) << std::endl;
     });
 
@@ -57,7 +57,7 @@ typedef std::function<void(const TcpClientPtr &, const char *buf, int len)> Mess
     std::this_thread::sleep_for(std::chrono::seconds(1));
     client->close();
 
-    cim::TcpClient::stopLoop();
+    cim::base::EventLoop::stop();
  */
 class CIM_DLL_API TcpClient : public std::enable_shared_from_this<TcpClient>, public cim::base::noncopyable {
 public:
@@ -116,25 +116,12 @@ public:
      */
     ConnectionStatus connectionStatus() const { return connect_status_; }
 
-public:
-    /**
-     * 必须调用：在程序初始化之前
-     */
-    static void runLoopInThread();
-
-    /**
-     * 必须调用：在程序退出之前
-     */
-    static void stopLoop();
-
 private:
     void setConnectionStatus(ConnectionStatus status);
 
     void onTimer();
 
 private:
-    static void onTimer(uv_timer_s *timer);
-
     static void onConnect(uv_connect_s *req, int status);
 
 #ifdef USE_UV_SEND
