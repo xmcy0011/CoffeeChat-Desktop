@@ -1,8 +1,8 @@
 /** @file cim.cpp
-  * @brief
-  * @author summer sh
-  * @date 2021/2/17
-  */
+ * @brief
+ * @author summer sh
+ * @date 2021/2/17
+ */
 
 #include "cim/cim.h"
 
@@ -12,44 +12,40 @@
 
 namespace cim {
 
-    ChatKitConfig g_config;
+ChatKitConfig g_config;
 
-    int initChatKit(const ChatKitConfig &config) {
-
+int initChatKit(const ChatKitConfig &config) {
 #ifdef _WINDOWS_
-        // evpp windows下 需要初始化socket
-        WSADATA wsaData;
+    // evpp windows下 需要初始化socket
+    WSADATA wsaData;
 
-        if (WSAStartup(0x0202, &wsaData) != 0) {
-            LogError("windows socket init error");
-            return kError;
-        }
+    if (WSAStartup(0x0202, &wsaData) != 0) {
+        LogError("windows socket init error");
+        return kError;
+    }
 #endif
-        g_config = config;
+    g_config = config;
 
-        // init loop
-        cim::core::Client::getInstance();
+    // init loop
+    cim::core::Client::getInstance();
 
-        // init db
-        if (!cim::db::SqliteHelper::getInstance()->init()) {
-            return kError;
-        }
-
-        return kSuccess;
+    // init db
+    if (!cim::db::SqliteHelper::getInstance()->init()) {
+        return kError;
     }
 
-    CIM_DLL_API void cleanup() {
-        // close sqlite
-        cim::db::SqliteHelper::getInstance()->cleanup();
-
-        cim::core::Client::getInstance()->logout();
-    }
-
-    CIM_DLL_API void setChatKitServerInfo(const ConfigServerInfo &info) {
-        g_config.serverInfo = info;
-    }
-
-    const ChatKitConfig &getChatKitConfig() {
-        return g_config;
-    }
+    return kSuccess;
 }
+
+CIM_DLL_API void cleanup() {
+    // close sqlite
+    cim::db::SqliteHelper::getInstance()->cleanup();
+
+    cim::core::Client::getInstance()->logout();
+}
+
+CIM_DLL_API void setChatKitServerInfo(const ConfigServerInfo &info) { g_config.serverInfo = info; }
+
+const ChatKitConfig &getChatKitConfig() { return g_config; }
+
+} // namespace cim

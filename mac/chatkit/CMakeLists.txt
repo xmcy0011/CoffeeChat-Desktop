@@ -19,6 +19,7 @@ if (APPLE) # 使用vcpkg 快速安装的依赖
     find_package(spdlog CONFIG REQUIRED)
     find_package(restclient-cpp CONFIG REQUIRED)
     find_package(SQLiteCpp CONFIG REQUIRED)
+    find_package(unofficial-libuv CONFIG REQUIRED)
 #    find_package(evpp CONFIG REQUIRED)
     find_package(nlohmann_json CONFIG REQUIRED)
 else ()
@@ -49,6 +50,7 @@ target_link_libraries(${ChatKitLib}
         SQLiteCpp
         spdlog::spdlog
         nlohmann_json::nlohmann_json
+        unofficial::libuv::libuv
         )
 # 静态库
 #        libprotobuf-lite.a

@@ -1,92 +1,91 @@
 #include "chat_manager.h"
+
+#include <ctime>
+
 #include "cim/base/util/string_util.h"
-#include <time.h>
 
 namespace cim {
-    namespace core {
-        const int kTimeSpanHalfHour = 60 * 60;
-        const int kTimeSpanMin = 10 * 60;
+namespace core {
 
-        ChatManager& ChatManager::getInstance() {
-            static ChatManager instance;
-            return instance;
-        }
+const int kTimeSpanHalfHour = 60 * 60;
+const int kTimeSpanMin = 10 * 60;
 
-        std::wstring ChatManager::FormatMsgTime(const int64_t& msgTimeStamp) {
-            time_t curTime = time(nullptr);
-            tm curDay = *localtime(&curTime);
+ChatManager& ChatManager::getInstance() {
+    static ChatManager instance;
+    return instance;
+}
 
-            time_t msgTime = (time_t)msgTimeStamp;
-            tm msgDay = *localtime(&msgTime);
+std::wstring ChatManager::FormatMsgTime(const int64_t& msgTimeStamp) {
+    time_t curTime = time(nullptr);
+    tm curDay = *localtime(&curTime);
 
-            auto timeSpan = ::abs(msgTimeStamp - (int64_t)curTime);
+    time_t msgTime = (time_t)msgTimeStamp;
+    tm msgDay = *localtime(&msgTime);
 
-            if (timeSpan <= kTimeSpanMin) {// 10分钟内，显示刚刚
-                return L"刚刚";
+    auto timeSpan = ::abs(msgTimeStamp - (int64_t)curTime);
 
-            } else if (timeSpan <= kTimeSpanHalfHour) { // 1小时内，显示xx分钟前
-                return cim::base::UTF8ToUTF16(std::to_string(timeSpan / 60)) + L"分钟前";
+    if (timeSpan <= kTimeSpanMin) { // 10分钟内，显示刚刚
+        return L"刚刚";
 
-            } else if (curDay.tm_year == msgDay.tm_year) {
-                if (curDay.tm_mday == msgDay.tm_mday) {// 今日内，显示时分
-                    char buffer[20] = { 0 };
-                    strftime(buffer, sizeof(buffer), "%H:%M", &msgDay);
+    } else if (timeSpan <= kTimeSpanHalfHour) { // 1小时内，显示xx分钟前
+        return cim::base::UTF8ToUTF16(std::to_string(timeSpan / 60)) + L"分钟前";
 
-                    return cim::base::UTF8ToUTF16(buffer);
+    } else if (curDay.tm_year == msgDay.tm_year) {
+        if (curDay.tm_mday == msgDay.tm_mday) { // 今日内，显示时分
+            char buffer[20] = {0};
+            strftime(buffer, sizeof(buffer), "%H:%M", &msgDay);
 
-                } else if (curDay.tm_mday / 7 == msgDay.tm_mday / 7) { // 同一周？显示星期几
-                    std::wstring weekStr = L"一";
+            return cim::base::UTF8ToUTF16(buffer);
 
-                    switch (msgDay.tm_wday) {
-                    case 0:
-                        weekStr = L"天";
-                        break;
+        } else if (curDay.tm_mday / 7 == msgDay.tm_mday / 7) { // 同一周？显示星期几
+            std::wstring weekStr = L"一";
 
-                    case 2:
-                        weekStr = L"二";
-                        break;
+            switch (msgDay.tm_wday) {
+                case 0:
+                    weekStr = L"天";
+                    break;
 
-                    case 3:
-                        weekStr = L"三";
-                        break;
+                case 2:
+                    weekStr = L"二";
+                    break;
 
-                    case 4:
-                        weekStr = L"四";
-                        break;
+                case 3:
+                    weekStr = L"三";
+                    break;
 
-                    case 5:
-                        weekStr = L"五";
-                        break;
+                case 4:
+                    weekStr = L"四";
+                    break;
 
-                    case 6:
-                        weekStr = L"六";
-                        break;
-                    }
+                case 5:
+                    weekStr = L"五";
+                    break;
 
-                    return L"星期" + weekStr;
-
-                }
-
-                // 同一年？显示月/日
-                char buffer[20] = { 0 };
-                strftime(buffer, sizeof(buffer), "%m/%d", &msgDay);
-                return cim::base::UTF8ToUTF16(buffer);
-
-            } else if (::abs(msgDay.tm_year - curDay.tm_year) <= 1) { // 一年内，年/月
-                char buffer[20] = { 0 };
-                strftime(buffer, sizeof(buffer), "%Y/%m", &msgDay);
-                return cim::base::UTF8ToUTF16(buffer);
+                case 6:
+                    weekStr = L"六";
+                    break;
             }
 
-            return L"很久以前";
+            return L"星期" + weekStr;
         }
 
-        ChatManager::ChatManager() {
+        // 同一年？显示月/日
+        char buffer[20] = {0};
+        strftime(buffer, sizeof(buffer), "%m/%d", &msgDay);
+        return cim::base::UTF8ToUTF16(buffer);
 
-        }
+    } else if (::abs(msgDay.tm_year - curDay.tm_year) <= 1) { // 一年内，年/月
+        char buffer[20] = {0};
+        strftime(buffer, sizeof(buffer), "%Y/%m", &msgDay);
+        return cim::base::UTF8ToUTF16(buffer);
+    }
 
-        ChatManager::~ChatManager() {
-        }
+    return L"很久以前";
+}
+
+ChatManager::ChatManager() {}
+
+ChatManager::~ChatManager() {}
 
 #if 0
         void testFormatMsgTime() {
@@ -117,8 +116,5 @@ namespace cim {
         }
 #endif
 
-    }
-}
-
-
-
+} // namespace core
+} // namespace cim
