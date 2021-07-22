@@ -269,6 +269,11 @@ void Client::onHandleAuthRsp(const IMHeader *header, Buffer *buffer) {
 
     LogInfo("result_code={},result_string={}", rsp.result_code(), rsp.result_string());
 
+    // 登录失败，断开tcp连接
+    if (rsp.result_code() != CIM::Def::CIMErrorCode::kCIM_ERR_SUCCESS) {
+        logout();
+    }
+
     if (login_cb_) {
         login_cb_(rsp);
     }

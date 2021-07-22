@@ -14,6 +14,20 @@ namespace cim {
 
 ChatKitConfig g_config{};
 
+int initChatKit(){
+    // init loop
+    cim::base::EventLoop::runInThread();
+    cim::core::Client::getInstance();
+
+    // init db
+    if (!cim::db::SqliteHelper::getInstance()->init()) {
+        return kError;
+    }
+
+    // init log setting
+    GetInstance().setLevel(g_config.debugConfig.log_level);
+}
+
 int initChatKit(const ChatKitConfig &config) {
 #ifdef _WINDOWS_
     // evpp windows下 需要初始化socket
@@ -26,17 +40,7 @@ int initChatKit(const ChatKitConfig &config) {
 #endif
     g_config = config;
 
-    // init loop
-    cim::base::EventLoop::runInThread();
-    cim::core::Client::getInstance();
-
-    // init db
-    if (!cim::db::SqliteHelper::getInstance()->init()) {
-        return kError;
-    }
-
-    // init log setting
-    GetInstance().setLevel(config.debugConfig.log_level);
+    initChatKit();
 
     return kSuccess;
 }

@@ -6,12 +6,18 @@
 
 namespace cim {
 
+/**
+ * 使用默认配置初始化SDK
+ */
+CIM_DLL_API int initChatKit();
+
 /** @fn initChatKit
  * @brief 初始化SDK
  * @param 配置信息
  * @return cim::Result
  */
 CIM_DLL_API int initChatKit(const ChatKitConfig& config);
+
 /** @fn cleanup
  * @brief 退出前释放相关资源
  */
