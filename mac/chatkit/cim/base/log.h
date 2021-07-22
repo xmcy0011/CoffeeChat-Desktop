@@ -55,6 +55,14 @@ public:
     ZLogger(const ZLogger&) = delete;
     ZLogger& operator=(const ZLogger&) = delete;
 
+public:
+    /**
+     * 设置日志级别
+     * 0: off, 1: trace > 2: debug > 3: info > 4: warn > 5: err > 6: critical
+     * @param level
+     */
+    void setLevel(int level);
+
 private:
     std::shared_ptr<spdlog::logger> nml_logger;
 };

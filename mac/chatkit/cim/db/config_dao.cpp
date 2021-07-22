@@ -130,7 +130,7 @@ bool ConfigDao::queryKey(const std::string& key, std::string& outValue) noexcept
     return false;
 }
 
-bool ConfigDao::query(ConfigServerInfo& out) noexcept {
+bool ConfigDao::query(ServerInfoConfig& out) noexcept {
     auto conn = SqliteHelper::getInstance()->getConn();
 
     try {

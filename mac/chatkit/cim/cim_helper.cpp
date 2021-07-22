@@ -35,6 +35,9 @@ int initChatKit(const ChatKitConfig &config) {
         return kError;
     }
 
+    // init log setting
+    GetInstance().setLevel(config.debugConfig.log_level);
+
     return kSuccess;
 }
 
@@ -46,7 +49,7 @@ CIM_DLL_API void cleanup() {
     cim::base::EventLoop::stop();
 }
 
-CIM_DLL_API void setChatKitServerInfo(const ConfigServerInfo &info) { g_config.serverInfo = info; }
+CIM_DLL_API void setChatKitServerInfo(const ServerInfoConfig &info) { g_config.serverInfo = info; }
 
 const ChatKitConfig &getChatKitConfig() { return g_config; }
 

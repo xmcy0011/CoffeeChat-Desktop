@@ -72,7 +72,7 @@ const std::string kDefaultServerIp = "127.0.0.1";
 const std::string kDefaultAppDataDir = "data";
 const std::string kDefaultAppDataFilename = "msg.db";
 
-struct ConfigServerInfo {
+struct ServerInfoConfig {
     std::string ip = kDefaultServerIp;       // 服务器IP地址
     uint16_t gatePort = kDefaultGateSrvPort; // Gate服务端口
     uint16_t httpPort = kDefaultHttpSrvPort; // Http服务端口
@@ -89,10 +89,17 @@ struct AppConfig {
     std::string app_data_dir = kDefaultAppDataDir; // 存储目录
 };
 
+struct DebugConfig {
+    // 0: off,
+    // 1: trace > 2: debug > 3: info > 4: warn > 5: err > 6: critical
+    int log_level = 2; // default debug
+};
+
 struct ChatKitConfig {
-    ConfigServerInfo serverInfo; // set by setChatKitServerInfo() or initChatKit()
+    ServerInfoConfig serverInfo; // set by setChatKitServerInfo() or initChatKit()
     AppConfig appConfig;         // APP的设置
     LoginConfig loginConfig;     // 登录的设置项
+    DebugConfig debugConfig;     // 和debug相关的设置
 };
 
 struct MessageModel {

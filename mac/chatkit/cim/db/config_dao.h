@@ -15,7 +15,7 @@ public:
 
     // crud
     bool createTable() noexcept;
-    bool query(ConfigServerInfo& out) noexcept;
+    bool query(ServerInfoConfig& out) noexcept;
 
     void updateServerIp(const std::string& ip) noexcept;
     void updateMsgPort(const uint16_t& msgPort) noexcept;

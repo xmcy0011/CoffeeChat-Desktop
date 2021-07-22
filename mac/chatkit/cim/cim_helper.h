@@ -21,7 +21,7 @@ CIM_DLL_API void cleanup();
  * @brief 设置服务器信息
  * @param IP和端口信息
  */
-CIM_DLL_API void setChatKitServerInfo(const ConfigServerInfo& info);
+CIM_DLL_API void setChatKitServerInfo(const ServerInfoConfig& info);
 
 /** @fn getChatKitConfig
  * @brief 获取配置信息

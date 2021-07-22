@@ -53,5 +53,14 @@ ZLogger::ZLogger() {
 
 ZLogger::~ZLogger() { spdlog::drop_all(); }
 
+void ZLogger::setLevel(int level) {
+    if (level == 0) {
+        nml_logger->set_level(spdlog::level::level_enum::off);
+    } else { // 偏移1，和Spdlog对应上
+        int new_level = level - 1;
+        nml_logger->set_level(spdlog::level::level_enum(new_level));
+    }
+}
+
 } // namespace base
 } // namespace cim
