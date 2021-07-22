@@ -17,6 +17,13 @@ using namespace CIM::Def;
 
 const uint16_t kProtocolVersion = 1;
 
+//! Define Operation System.
+#if (defined(WIN32) || defined(WIN64))
+#   ifndef H_OS_WINDOWS
+#       define H_OS_WINDOWS
+#   endif
+#endif
+
 // MessageLite, evpp::Buffer
 #define PARSE_PB_AND_CHECK(rsp, buffer)                          \
     if (!rsp.ParseFromArray(buffer->data(), buffer->length())) { \
@@ -25,16 +32,6 @@ const uint16_t kProtocolVersion = 1;
     } else {                                                     \
         buffer->Skip(rsp.ByteSizeLong());                        \
     }
-
-#ifndef CIM_NAMESPACE
-#define CIM_NAMESPACE cim
-#endif
-#ifndef CIM_NAMESPACE_BEGIN
-#define CIM_NAMESPACE_BEGIN namespace CIM_NAMESPACE {
-#endif
-#ifndef CIM_NAMESPACE_END
-#define CIM_NAMESPACE_END }
-#endif
 
 namespace cim {
 

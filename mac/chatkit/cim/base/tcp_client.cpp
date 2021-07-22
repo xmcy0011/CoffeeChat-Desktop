@@ -6,6 +6,8 @@
 
 #include "tcp_client.h"
 
+#include <unistd.h>
+
 #include <atomic>
 #include <memory>
 #include <thread>
@@ -207,6 +209,29 @@ TcpClientPtr TcpClient::findTcpClient(uv_stream_s *handle) {
 }
 
 std::string TcpClient::remoteAddr() const { return server_ip_ + ":" + std::to_string(server_port_); }
+
+bool TcpClient::ping(const string &serverIp, uint16_t port) {
+#ifdef H_OS_WINDOWS
+    return false;
+#else
+    int fd = socket(PF_INET, SOCK_STREAM, 0);
+    if (fd == -1) {
+        LogWarn("socket error:{}", errno);
+        return false;
+    }
+
+    struct sockaddr_in remote {};
+    remote.sin_family = AF_INET;
+    remote.sin_port = htons(port);
+    remote.sin_addr.s_addr = inet_addr(serverIp.c_str());
+
+    int ret = ::connect(fd, (sockaddr *)&remote, sizeof(remote));
+    LogDebug("connect remote {}:{}, ret={}", serverIp, port, ret);
+
+    ::close(fd);
+    return ret != -1;
+#endif
+}
 
 } // namespace base
 } // namespace cim

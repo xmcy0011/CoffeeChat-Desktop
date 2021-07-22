@@ -116,6 +116,14 @@ public:
      */
     ConnectionStatus connectionStatus() const { return connect_status_; }
 
+    /**
+     * 检测服务器是可连接（TCP）
+     * @param serverIp: ip地址
+     * @param port: 端口
+     * @return
+     */
+    static bool ping(const std::string &serverIp, uint16_t port);
+
 private:
     void setConnectionStatus(ConnectionStatus status);
 

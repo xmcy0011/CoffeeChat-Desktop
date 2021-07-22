@@ -17,6 +17,8 @@
 #include "cim/base/log.h"
 #include "cim/base/noncopyable.h"
 #include "cim/base/event_loop.h"
+#include "cim/base/tcp_client.h"
+#include "cim/base/buffer.h"
 
 // core
 #include "cim/core/callback.h"

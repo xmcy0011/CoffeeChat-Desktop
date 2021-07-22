@@ -19,6 +19,21 @@ set(PROJECT_VERSION_MINOR 0)
 set(QT_SDK_DIR "/Users/xuyc/Qt/5.12.11/clang_64/")
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${QT_SDK_DIR})
 
+# 在QT Creator中找不到，需要手动include
+if (IN_CLION_IDE)
+    find_package(protobuf CONFIG REQUIRED)
+
+else()
+    message("current in qt creator")
+
+    # protobuf 通过vcpkg安装
+    set(VCPKG_INCLUDE_DIR /Users/xuyc/repo/github/vcpkg/installed/x64-osx/include)
+    set(VCPKG_LIB_DIR /Users/xuyc/repo/github/vcpkg/installed/x64-osx/lib)
+
+    include_directories(../chatkit ${VCPKG_INCLUDE_DIR})
+    link_directories(../cmake-build-debug/chatkit ${VCPKG_LIB_DIR})
+endif ()
+
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 
@@ -59,7 +74,11 @@ else()
     endif()
 endif()
 
-target_link_libraries(hellochat PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+if (IN_CLION_IDE)
+    target_link_libraries(hellochat PRIVATE Qt${QT_VERSION_MAJOR}::Widgets cim::chatkit protobuf::libprotobuf-lite)
+else()
+    target_link_libraries(hellochat PRIVATE Qt${QT_VERSION_MAJOR}::Widgets chatkit libprotobuf-lite.a)
+endif()
 
 set_target_properties(hellochat PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER cim.com

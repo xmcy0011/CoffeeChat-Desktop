@@ -74,7 +74,7 @@
     <string>Test</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEdit">
+  <widget class="QLineEdit" name="leServerIp">
    <property name="geometry">
     <rect>
      <x>136</x>
@@ -87,7 +87,7 @@
     <string>106.14.172.35</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEdit_2">
+  <widget class="QLineEdit" name="leGatePort">
    <property name="geometry">
     <rect>
      <x>136</x>
@@ -100,7 +100,7 @@
     <string>8000</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEdit_3">
+  <widget class="QLineEdit" name="leHttpPort">
    <property name="geometry">
     <rect>
      <x>136</x>

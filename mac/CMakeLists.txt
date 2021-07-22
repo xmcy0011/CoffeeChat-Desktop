@@ -25,6 +25,9 @@ add_definitions(
         #-Werror # 警告视为错误，比较严格，可以根据需求启用
 )
 
+# hellochat 通过该标志判断是否在Qt Creator中打开
+set(IN_CLION_IDE true CACHE INTERNAL "is in clion ide")
+
 # 库
 add_subdirectory(chatkit)
 add_subdirectory(hellochat)
