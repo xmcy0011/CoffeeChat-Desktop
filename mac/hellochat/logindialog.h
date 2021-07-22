@@ -2,25 +2,34 @@
 #define LOGINDIALOG_H
 
 #include <QDialog>
+#include <QRegExpValidator>
+#include <QValidator>
+
+#include "cim/cim.h"
 
 namespace Ui {
 class LoginDialog;
 }
 
 class LoginDialog : public QDialog {
-  Q_OBJECT
+    Q_OBJECT
 
- public:
-  explicit LoginDialog(QWidget *parent = nullptr);
-  ~LoginDialog();
+public:
+    explicit LoginDialog(QWidget *parent = nullptr);
+    ~LoginDialog();
 
- private slots:
-  void on_pushButton_clicked();
+private slots:
+    void on_pushButton_clicked();
 
-  void on_pushButton_2_clicked();
+    void on_pushButton_2_clicked();
 
- private:
-  Ui::LoginDialog *ui;
+    void onLoginResult(const CIM::Login::CIMAuthRsp &rsp);
+
+    void onLoginTimeout();
+
+private:
+    Ui::LoginDialog *ui;
+    QValidator *email_validator_;
 };
 
-#endif  // LOGINDIALOG_H
+#endif // LOGINDIALOG_H

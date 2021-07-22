@@ -86,41 +86,6 @@
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
-  <widget class="QTextEdit" name="textEdit">
-   <property name="geometry">
-    <rect>
-     <x>43</x>
-     <y>255</y>
-     <width>295</width>
-     <height>50</height>
-    </rect>
-   </property>
-   <property name="documentTitle">
-    <string/>
-   </property>
-   <property name="placeholderText">
-    <string>邮箱</string>
-   </property>
-  </widget>
-  <widget class="QTextEdit" name="textEdit_2">
-   <property name="geometry">
-    <rect>
-     <x>43</x>
-     <y>320</y>
-     <width>295</width>
-     <height>50</height>
-    </rect>
-   </property>
-   <property name="inputMethodHints">
-    <set>Qt::ImhNone</set>
-   </property>
-   <property name="lineWrapMode">
-    <enum>QTextEdit::WidgetWidth</enum>
-   </property>
-   <property name="placeholderText">
-    <string>密码</string>
-   </property>
-  </widget>
   <widget class="QLabel" name="labError">
    <property name="enabled">
     <bool>true</bool>
@@ -179,6 +144,38 @@
    </property>
    <property name="flat">
     <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="leUserName">
+   <property name="geometry">
+    <rect>
+     <x>43</x>
+     <y>255</y>
+     <width>295</width>
+     <height>50</height>
+    </rect>
+   </property>
+   <property name="inputMethodHints">
+    <set>Qt::ImhNone</set>
+   </property>
+   <property name="placeholderText">
+    <string>邮箱</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lePwd">
+   <property name="geometry">
+    <rect>
+     <x>43</x>
+     <y>320</y>
+     <width>295</width>
+     <height>50</height>
+    </rect>
+   </property>
+   <property name="echoMode">
+    <enum>QLineEdit::Password</enum>
+   </property>
+   <property name="placeholderText">
+    <string>密码</string>
    </property>
   </widget>
  </widget>
