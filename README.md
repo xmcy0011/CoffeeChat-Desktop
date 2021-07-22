@@ -24,6 +24,7 @@ $ vcpkg install restclient-cpp   # c++ wraps libcurl for HTTP requests, see: htt
 # $ vcpkg install crossguid      # 跨平台guid，see: https://github.com/graeme-hill/crossguid
 $ vcpkg install nlohmann-json    # json解析库，比jsoncpp好用，see: https://github.com/nlohmann/json
 $ vcpkg install sqlitecpp        # sqlite3的封装库，see: https://github.com/SRombauts/SQLiteCpp
+$ vcpkg install gtest            # google unit test, see: https://github.com/google/googletest
 ```
 
 > ps：在macOS上，vcpkg install protobuf安装的是静态库，在windows上，安装的是动态库，静态库需要替换为：vcpkg install protobuf:x86-windows-static

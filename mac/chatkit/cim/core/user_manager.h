@@ -24,6 +24,14 @@ public:
     static UserManager* getInstance();
 
 public:
+    /**
+     * 注册一个用户
+     * @param userName：用户名
+     * @param userPwd：密码（明文），内部会进行加密
+     * @param nickName: 昵称
+     * @param out: 失败具体的错误码，out.code 和
+     * @return 成功与否
+     */
     bool registerUser(std::string userName, std::string userPwd, std::string nickName, HttpResponseBase& out);
 
 private:

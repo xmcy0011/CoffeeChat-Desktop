@@ -165,7 +165,7 @@ bool CIMIntenralCmdID_Parse(
     ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, CIMIntenralCmdID* value);
 enum CIMErrorCode : int {
   kCIM_ERR_UNKNOWN = 0,
-  kCIM_ERR_SUCCSSE = 200,
+  kCIM_ERR_SUCCESS = 200,
   kCIM_ERR_INTERNAL_ERROR = 201,
   kCIM_ERR_LOGIN_DB_VALIDATE_FAILED = 2000,
   kCIM_ERR_LOGIN_VERSION_TOO_OLD = 2001,

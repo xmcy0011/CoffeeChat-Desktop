@@ -421,7 +421,7 @@ static const char CIMErrorCode_names[] =
   "kCIM_ERR_LOGIN_INVALID_USER_OR_PWD"
   "kCIM_ERR_LOGIN_INVALID_USER_TOKEN"
   "kCIM_ERR_LOGIN_VERSION_TOO_OLD"
-  "kCIM_ERR_SUCCSSE"
+  "kCIM_ERR_SUCCESS"
   "kCIM_ERR_UNKNOWN";
 
 static const ::PROTOBUF_NAMESPACE_ID::internal::EnumEntry CIMErrorCode_entries[] = {
@@ -439,7 +439,7 @@ static const ::PROTOBUF_NAMESPACE_ID::internal::EnumEntry CIMErrorCode_entries[]
 
 static const int CIMErrorCode_entries_by_number[] = {
   9, // 0 -> kCIM_ERR_UNKNOWN
-  8, // 200 -> kCIM_ERR_SUCCSSE
+  8, // 200 -> kCIM_ERR_SUCCESS
   3, // 201 -> kCIM_ERR_INTERNAL_ERROR
   4, // 2000 -> kCIM_ERR_LOGIN_DB_VALIDATE_FAILED
   7, // 2001 -> kCIM_ERR_LOGIN_VERSION_TOO_OLD

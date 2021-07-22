@@ -40,6 +40,9 @@ bool UserManager::registerUser(std::string userName, std::string userPwd, std::s
     auto res = RestClient::post(url, "application/json; charset=utf-8", root.dump());
 
     if (res.code != 200) {
+        out.code = CIM::Def::CIMErrorCode::kCIM_ERR_INTERNAL_ERROR;
+        out.msg = "server unavailable";
+        LogWarn("register error, code={},msg={}", out.code, out.msg);
         return false;
 
     } else {
@@ -50,7 +53,12 @@ bool UserManager::registerUser(std::string userName, std::string userPwd, std::s
             out.msg = value["error_msg"].get<std::string>();
 
             LogInfo("register code={},msg={}", out.code, out.msg);
-            return true;
+
+            if (out.code == CIM::Def::CIMErrorCode::kCIM_ERR_SUCCESS) {
+                return true;
+            } else {
+                return false;
+            }
         } else {
             LogInfo("parse json error:{}", res.body);
         }

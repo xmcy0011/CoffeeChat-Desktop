@@ -68,11 +68,12 @@ const uint32_t kLoginTimerOut = 10 * 1000;
 const uint32_t kKeepAliveTimeSpan = 30 * 1000;
 const uint32_t kKeepAliveTimeOut = 90 * 1000;
 
+const std::string kDefaultServerIp = "127.0.0.1";
 const std::string kDefaultAppDataDir = "data";
 const std::string kDefaultAppDataFilename = "msg.db";
 
 struct ConfigServerInfo {
-    std::string ip;                          // 服务器IP地址
+    std::string ip = kDefaultServerIp;       // 服务器IP地址
     uint16_t gatePort = kDefaultGateSrvPort; // Gate服务端口
     uint16_t httpPort = kDefaultHttpSrvPort; // Http服务端口
 };
