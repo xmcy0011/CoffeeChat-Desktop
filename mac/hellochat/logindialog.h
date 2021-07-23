@@ -27,6 +27,8 @@ private slots:
 
     void onLoginTimeout();
 
+    void on_pushButton_3_clicked();
+
 private:
     Ui::LoginDialog *ui;
     QValidator *email_validator_;

@@ -49,6 +49,9 @@ set(PROJECT_SOURCES
         server_setting_dialog.h
         server_setting_dialog.cpp
         server_setting_dialog.ui
+        user_register_dialog.h
+        user_register_dialog.cpp
+        user_register_dialog.ui
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

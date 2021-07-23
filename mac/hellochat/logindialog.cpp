@@ -6,6 +6,7 @@
 #include "cim/cim.h"
 #include "server_setting_dialog.h"
 #include "ui_logindialog.h"
+#include "user_register_dialog.h"
 
 LoginDialog::LoginDialog(QWidget* parent) : QDialog(parent), ui(new Ui::LoginDialog) {
     ui->setupUi(this);
@@ -63,4 +64,9 @@ void LoginDialog::onLoginResult(const CIM::Login::CIMAuthRsp& rsp) {
 void LoginDialog::onLoginTimeout() {
     QMetaObject::invokeMethod(
         this, [=] { QMessageBox::information(this, "Tips", "登录超时，服务器无响应", QMessageBox::Yes); });
+}
+
+void LoginDialog::on_pushButton_3_clicked() {
+    UserRegisterDialog dialog;
+    dialog.exec();
 }
