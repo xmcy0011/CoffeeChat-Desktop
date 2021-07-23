@@ -34,9 +34,17 @@ public:
      */
     bool registerUser(std::string userName, std::string userPwd, std::string nickName, HttpResponseBase& out);
 
+    /**
+     * 随机获取一个用户昵称
+     * @param random_nick: 用户昵称
+     * @param out: 结果
+     * @return
+     */
+    bool generateNickName(std::string& random_nick, HttpResponseBase& out);
+
 private:
     UserManager();
-    ~UserManager() = default;
+    ~UserManager() override = default;
 };
 
 } // namespace core
