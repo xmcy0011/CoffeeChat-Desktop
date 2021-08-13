@@ -142,6 +142,9 @@
    <property name="inputMethodHints">
     <set>Qt::ImhNone</set>
    </property>
+   <property name="text">
+    <string>xmcy0011@sina.com</string>
+   </property>
    <property name="placeholderText">
     <string>邮箱</string>
    </property>
@@ -154,6 +157,9 @@
      <width>295</width>
      <height>50</height>
     </rect>
+   </property>
+   <property name="text">
+    <string>sa123456</string>
    </property>
    <property name="echoMode">
     <enum>QLineEdit::Password</enum>
