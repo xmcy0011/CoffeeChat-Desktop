@@ -1,25 +1,23 @@
-#include <QApplication>
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
 
-#include "cim/cim.h"
-#include "logindialog.h"
-#include "mainwindow.h"
 
-int main(int argc, char *argv[]) {
-    QApplication a(argc, argv);
+int main(int argc, char *argv[])
+{
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
 
-    cim::initChatKit();
+    QGuiApplication app(argc, argv);
 
-    LoginDialog login;
-    if (login.exec() == QDialog::Accepted) {
-        MainWindow w;
-        w.show();
+    QQmlApplicationEngine engine;
+    const QUrl url(QStringLiteral("qrc:/main.qml"));
+    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
+        &app, [url](QObject *obj, const QUrl &objUrl) {
+            if (!obj && url == objUrl)
+                QCoreApplication::exit(-1);
+        }, Qt::QueuedConnection);
+    engine.load(url);
 
-        int ret = a.exec();
-        // 释放SDK
-        cim::cleanup();
-        return ret;
-    } else {
-        cim::cleanup();
-        return 0;
-    }
+    return app.exec();
 }
