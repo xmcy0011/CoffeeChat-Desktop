@@ -3,6 +3,8 @@
 #include <ctime>
 
 #include "cim/base/util/string_util.h"
+#include "cim/core/client.h"
+#include "cim/pb/CIM.Message.pb.h"
 
 namespace cim {
 namespace core {
@@ -86,6 +88,30 @@ std::wstring ChatManager::FormatMsgTime(const int64_t& msgTimeStamp) {
 ChatManager::ChatManager() {}
 
 ChatManager::~ChatManager() {}
+
+void ChatManager::sendMessage(uint64_t to, int msg, std::string msg_data) {
+    CIM::Message::CIMMsgData data{};
+    data.set_from_user_id(Client::getInstance()->GetUserId());
+    data.set_from_nick_name("unknow");
+    data.set_msg_type((CIM::Def::CIMMsgType)msg);
+    data.set_to_session_id(to);
+    data.set_msg_data(msg_data.c_str());
+
+    Client::getInstance()->send(CIM::Def::CIMCmdID::kCIM_CID_MSG_DATA, data);
+}
+void ChatManager::setRecvMsgCallback(const RecvMsgCallback& cb) { recv_cb_ = cb; }
+
+void ChatManager::onHandleData(const IMHeader* header, cim::base::Buffer* buffer) {
+    if (header->cmd == kCIM_CID_MSG_DATA) {
+        // 解析
+        if (recv_cb_ != nullptr) {
+            CIM::Message::CIMMsgData data{};
+            if (data.ParseFromArray(buffer->data(), buffer->length())) {
+                recv_cb_(data);
+            }
+        }
+    }
+}
 
 #if 0
         void testFormatMsgTime() {

@@ -222,6 +222,10 @@ void Client::onHandleData(const IMHeader *header, Buffer *buffer) {
             onHandleAuthRsp(header, buffer);
             break;
 
+        case CIM::Def::kCIM_CID_MSG_DATA: {
+            ChatManager::getInstance().onHandleData(header, buffer);
+        } break;
+
         default:
             LogInfo("unknown cmd={}", header->cmd);
             buffer->Skip(header->len);
