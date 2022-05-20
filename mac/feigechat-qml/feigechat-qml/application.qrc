@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/icon">
+        <file>feige.png</file>
+        <file>btn-setting.png</file>
+    </qresource>
+</RCC>
